@@ -206,6 +206,8 @@ public class configuration extends javax.swing.JFrame {
         Send s = new Send("send HELLO", "hello");
         s.yIP = this.yIP;
         s.yPort = this.yPort;
+        s.content = this.txt_nickname.getText();
+        this.yNickname = s.content;
         try
         {
             s.IpDest = InetAddress.getByName(this.txt_ip.getText());
@@ -217,12 +219,25 @@ public class configuration extends javax.swing.JFrame {
         s.run();
         
         System.out.print("Waiting for acknowledge");
+        /*
         while(!recv.acked)
         {
-            System.out.print(".");
+            System.out.print("");
+        }
+        */
+        System.out.println("\nAcked from friend");
+        this.fNickname = recv.fNickname;
+        recv.yNickname = this.yNickname;
+        try
+        {
+            this.fIP = InetAddress.getByName(this.txt_ip.getText());
+            this.fPort = Integer.parseInt(this.txt_port.getText());
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(configuration.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        System.out.println("\nAcked from friend");
+        init_HTML();
+        
         this.dispose();
     }//GEN-LAST:event_btn_okActionPerformed
 
@@ -297,6 +312,33 @@ public class configuration extends javax.swing.JFrame {
         return chosenFile;
     }
     
+    public void init_HTML()
+    {
+        try 
+        {
+            File currentDirectory = new File(new File(".").getAbsolutePath());
+            String p = currentDirectory.getCanonicalPath();
+            File f = new File(p + "/temp/");
+            if(!f.exists())
+                f.mkdir();
+            FileWriter temp = new FileWriter(p + "/temp/temp" + this.yNickname + ".html");
+            BufferedWriter b = new BufferedWriter(temp);
+            String s = "<html>\n"
+                    + "\t<head>\n"
+                    + "\t\t<title> Chat Line </title>\n"
+                    + "\t</head>\n"
+                    + "\t<body>\n"
+                    + "\t</body>\n"
+                    + "</html>";
+            b.write(s);
+            b.close();
+            
+        } catch (IOException ex)
+        {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -333,8 +375,12 @@ public class configuration extends javax.swing.JFrame {
     }
     
     private ImageImplement panel;
+    public String yNickname;
+    public String fNickname;
     public InetAddress yIP;
     public int yPort;
+    public InetAddress fIP;
+    public int fPort;
     public File avt = null;
     public boolean isClosed = false;
     public Receive recv;

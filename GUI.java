@@ -1,6 +1,14 @@
 
 import build_in_class.*;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.*;
@@ -31,10 +39,15 @@ public class GUI extends javax.swing.JFrame {
             int t = 1 + (int)(Math.random()*255);
             yIP = InetAddress.getByName("127.16.0." + t);
             yPort = 12567 + (int)(Math.random()*45535);
+            this.lbl_yIP.setText(this.lbl_yIP.getText() + " " + yIP.toString());
+            this.lbl_yPort.setText(this.lbl_yPort.getText() + " " + yPort);
             doc = new StringBuilder();
-            nickname = "anonymous";
+            yNickname = "anonymous";
+            fNickname = "anonymous_friend";
             recv.yIP = this.yIP;
             recv.yPort = this.yPort + 1;
+            recv.t = this.txt_chatline;
+            recv.doc = this.doc;
             recv_thrd.start();
         } catch (UnknownHostException ex) {
             Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -70,6 +83,13 @@ public class GUI extends javax.swing.JFrame {
         setBackground(new java.awt.Color(255, 255, 255));
         setName("gui"); // NOI18N
         setResizable(false);
+        addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            public void windowGainedFocus(java.awt.event.WindowEvent evt) {
+                formWindowGainedFocus(evt);
+            }
+            public void windowLostFocus(java.awt.event.WindowEvent evt) {
+            }
+        });
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
@@ -186,41 +206,68 @@ public class GUI extends javax.swing.JFrame {
 
     private void txt_sendKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_sendKeyPressed
         // TODO add your handling code here:
+        this.fIP = recv.fIP;
+        this.fPort = recv.fPort;
         if(evt.getKeyCode() == KeyEvent.VK_ENTER && !txt_send.getText().equals("\n") && !txt_send.getText().equals("") && txt_send.getText() != null)
         {
-            String pic = "<img src=\"C:\\Users\\nguye\\Pictures\\11212762_776134922485724_4283480414057853955_n.jpg\" alt=\"avt\" style=\"width:24px;height:24px;\">";
-            String s = "<span style=\"color:red;font-weight:bold\">&emsp[" + this.get_date() + "]</span>: ";
-            s = pic + s;
-            
+            set_nickname();
+            // send message to friend
+            Send mess = new Send("Send MESS", "mess");
+            mess.yIP = this.yIP;
+            mess.yPort = this.yPort;
+            mess.IpDest = this.fIP;
+            mess.PortDes = this.fPort + 1;
             if(this.txt_send.getText().charAt(0) == '\n')
-                s = s + this.txt_send.getText().substring(1, this.txt_send.getText().length());
+                mess.content = this.txt_send.getText().substring(1, this.txt_send.getText().length());
             else
-                s = s + this.txt_send.getText();
-            doc.append("\n<br>" + s + "</br>");
-            s = doc.toString();
-            s = "<html>" + s + "\n</html>";
-            System.out.println(s);
-            txt_chatline.setText(s);
+                mess.content = this.txt_send.getText();
+            mess.run();
+            
+            UpdateHTML(this.txt_send.getText());
+            
+            File currentDirectory = new File(new File(".").getAbsolutePath());
+            String p;
+            try
+            {
+                p = currentDirectory.getCanonicalPath();
+                File html = new File(p + "/temp/temp" + this.yNickname + ".html");
+                this.txt_chatline.setPage(html.toURI().toURL());
+                this.txt_chatline.repaint();
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
             this.clear_text_pane();
         }
     }//GEN-LAST:event_txt_sendKeyPressed
 
     private void btn_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_sendActionPerformed
         // TODO add your handling code here:
+        
+        this.fIP = recv.fIP;
+        this.fPort = recv.fPort;
         if(!txt_send.getText().equals("\n") && !txt_send.getText().equals("") && txt_send.getText() != null)
         {
-            String pic = "<img src=\"C:\\Users\\nguye\\Pictures\\11212762_776134922485724_4283480414057853955_n.jpg\" alt=\"avt\" style=\"width:24px;height:24px;\">";
-            String s = "<span style=\"color:red;font-weight:bold\">&emsp[" + this.get_date() + "]</span>: ";
-            s = pic + s;
+            set_nickname();            
+            // send mesage to friend
+            Send mess = new Send("Send MESS", "mess");
             if(this.txt_send.getText().charAt(0) == '\n')
-                s = s + this.txt_send.getText().substring(1, this.txt_send.getText().length());
+                mess.content = this.txt_send.getText().substring(1, this.txt_send.getText().length());
             else
-                s = s + this.txt_send.getText();
-            doc.append("\n<br>" + s + "</br>");
-            s = doc.toString();
-            s = "<html>" + s + "\n</html>";
-            System.out.println(s);
-            txt_chatline.setText(s);
+                mess.content = this.txt_send.getText();
+            mess.run();
+            
+            UpdateHTML(this.txt_send.getText());
+            
+            File currentDirectory = new File(new File(".").getAbsolutePath());
+            String p;
+            try
+            {
+                p = currentDirectory.getCanonicalPath();
+                File html = new File(p + "/temp/temp" + this.yNickname + ".html");
+                this.txt_chatline.setPage(html.toURI().toURL());
+            } catch (IOException ex) {
+                Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
             this.clear_text_pane();
         }
     }//GEN-LAST:event_btn_sendActionPerformed
@@ -231,12 +278,21 @@ public class GUI extends javax.swing.JFrame {
         config.yPort = this.yPort;
         config.recv = this.recv;
         config.show(true);
+        this.fIP = config.fIP;
+        this.fPort = config.fPort;
+        set_connection_text();
+        //init_HTML();
     }//GEN-LAST:event_formWindowOpened
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         // TODO add your handling code here:
         recv_thrd.stop();
     }//GEN-LAST:event_formWindowClosing
+
+    private void formWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowGainedFocus
+        // TODO add your handling code here:
+        set_connection_text();
+    }//GEN-LAST:event_formWindowGainedFocus
 
     public String get_date()
     {
@@ -250,6 +306,79 @@ public class GUI extends javax.swing.JFrame {
     {
         this.txt_send.setText("");
     }
+    
+    public void set_nickname()
+    {
+        this.yNickname = recv.yNickname;
+        this.fNickname = recv.fNickname;
+    }
+    
+    public void set_connection_text()
+    {
+        if(this.fIP != null)
+            this.lbl_fIP.setText("IP: " + fIP.toString());
+        if(this.fPort == 0)
+            this.lbl_fPort.setText("Port: " + fPort);
+        if(this.fNickname != null)
+            this.lbl_fNickname.setText("Friend's nickname: " + this.fNickname);
+        if(this.yIP != null)
+            this.lbl_yIP.setText("IP: " + yIP.toString());
+        if(this.yPort == 0)
+            this.lbl_yPort.setText("Port: " + yPort);
+        if(this.yNickname != null)
+            this.lbl_yNickname.setText("Your nickname: " + this.yNickname);
+    }
+    
+    private void UpdateHTML(String info)
+    {
+        try
+        {
+            File currentDirectory = new File(new File(".").getAbsolutePath());
+            String p = currentDirectory.getCanonicalPath();
+            File html = new File(p + "/temp/temp" + this.yNickname + ".html");
+            System.out.println("\tUpdate File: " + html.getCanonicalPath());
+            RandomAccessFile b = new RandomAccessFile(html, "rw");
+            b.seek(html.length() - 16);
+            String pic = "<img src=\"C:\\Users\\nguye\\Pictures\\11212762_776134922485724_4283480414057853955_n.jpg\" alt=\"avt\" style=\"width:24px;height:24px;\">\n";
+            String s = "\t\t\t<span style=\"color:red;font-weight:bold\">&emsp " + this.yNickname.toUpperCase() + " &emsp[" + this.get_date() + "]</span>: ";
+            s = pic + s;
+            if(info.charAt(0) == '\n')
+                s = s + info.substring(1, info.length());
+            else
+                s = s + info;
+            b.write(("\t<br> \n\t\t\t" + s + "\n\t\t</br>\n\t</body>\n</html>").getBytes());
+            b.close();
+        } catch (IOException ex) {
+        }
+    }
+    
+    public void init_HTML()
+    {
+        try 
+        {
+            File currentDirectory = new File(new File(".").getAbsolutePath());
+            String p = currentDirectory.getCanonicalPath();
+            File f = new File(p + "/temp/");
+            if(!f.exists())
+                f.mkdir();
+            FileWriter temp = new FileWriter(p + "/temp/temp" + this.yNickname + ".html");
+            BufferedWriter b = new BufferedWriter(temp);
+            String s = "<html>\n"
+                    + "\t<head>\n"
+                    + "\t\t<title> Chat Line </title>\n"
+                    + "\t</head>\n"
+                    + "\t<body>\n"
+                    + "\t</body>\n"
+                    + "</html>";
+            b.write(s);
+            b.close();
+            
+        } catch (IOException ex)
+        {
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+        
     /**
      * @param args the command line arguments
      */
@@ -290,7 +419,8 @@ public class GUI extends javax.swing.JFrame {
     private InetAddress yIP;
     private InetAddress fIP;
     private int fPort;
-    private String nickname;
+    private String yNickname;
+    private String fNickname;
     private String path_yAvt;
     private String path_fAvt;
     static Receive recv = new Receive("RECEIVE");
