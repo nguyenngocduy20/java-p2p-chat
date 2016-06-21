@@ -7,9 +7,12 @@ package build_in_class;
 import java.util.*;
 import java.io.*;
 import java.net.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JEditorPane;
 
 /**
  *
@@ -19,19 +22,27 @@ public class Receive implements Runnable
 {
     public String threadName;
     public String flag;
+    public String fNickname;
+    public String yNickname;
     public int yPort; // port nhan mac dinh
     public InetAddress yIP; // ip
+    public InetAddress fIP;
+    public int fPort;
     public InetAddress sIP;
     public int sPort; // port gui
     public String content; // chua noi dung goi tin
     public DatagramPacket packet;
     public boolean acked;
     public boolean isRunnable = true;
+    public JEditorPane t;
+    public StringBuilder doc;
     
     public Receive()
     {
             System.out.println("Init RECEIVE");
             System.out.println("Your IP: " + yIP + "\tYour port: " + yPort);
+            this.yNickname = "anonymous";
+            this.fNickname = "anonymous_friend";
     }
 
     public Receive(String name)
@@ -39,6 +50,8 @@ public class Receive implements Runnable
             System.out.println("Init RECEIVE");
             this.threadName = name;
             System.out.println("Thread name: " + this.threadName +"\tYour IP: " + yIP + "\tYour port: " + yPort);
+            this.yNickname = "anonymous";
+            this.fNickname = "anonymous_friend";
     }
     
     public void run()
@@ -47,7 +60,7 @@ public class Receive implements Runnable
         {
             try 
             {
-                System.out.println("Init DatagramSocket");
+                System.out.println("\nInit DatagramSocket");
                 //System.out.println("Thread name: " + this.threadName +"\tYour IP: " + IPAddress.toString() + "\tYour port: " + yPort);
                 DatagramSocket ds = new DatagramSocket(yPort, yIP);
                 System.out.println("Init RECEIVE datagramSocket successful");
@@ -57,14 +70,16 @@ public class Receive implements Runnable
                 // nhan goi tin
                 packet = new DatagramPacket(recvData, 16384);
                 ds.receive(packet);
-                this.sIP = packet.getAddress();
-                this.sPort = packet.getPort();
-                System.out.println("Received packet from " + sIP + "\tPort: " + sPort);
+                this.sIP = this.fIP = packet.getAddress();
+                this.sPort = this.fPort = packet.getPort();
+                System.out.println("\n===\nReceived packet from " + sIP + "\tPort: " + sPort);
                 System.out.println("Content [" + packet.getLength() + "]: " + new String(packet.getData()).substring(0, packet.getLength()));
                 parsePacket(packet);
                 
+                System.out.println("\n--- Action for this type of packet ---\n");
                 if(this.flag.equals("hello"))
                 {
+                    this.fNickname = this.content.substring(0, this.content.indexOf(" "));
                     Send s = new Send("send ACK", "ack");
                     s.yIP = this.yIP;
                     s.yPort = this.yPort - 1;
@@ -114,7 +129,19 @@ public class Receive implements Runnable
                 if(this.flag.equals("mess"))
                 {
                     parsePacket(packet);
-                }
+                    UpdateHTML(this.content);
+                    try
+                    {
+                        File currentDirectory = new File(new File(".").getAbsolutePath());
+                        String p = currentDirectory.getCanonicalPath();
+                        
+                        File f = new File(p + "/temp/temp" + this.yNickname + ".html");
+                        t.setPage(f.toURI().toURL());
+                    } catch(IOException ex)
+                    {
+                        
+                    }
+               }
                 
                 if(this.flag.equals("file"))
                 {
@@ -127,6 +154,7 @@ public class Receive implements Runnable
                 }
                 
                 ds.close();
+                System.out.println("\n--- End Action ---\n");
             } catch (SocketTimeoutException ex)
             {
                 if(!isRunnable)
@@ -147,12 +175,14 @@ public class Receive implements Runnable
         {
             this.sIP = packet.getAddress();
             this.sPort = packet.getPort();
+            this.content = s.substring(this.flag.length() + 1, s.length());
+            //this.content = this.content.substring(0, this.content.indexOf(" "));
             System.out.println("Flag [" + this.flag.length() + "]: <" + this.flag.toUpperCase() + ">");
         }
         
         if(this.flag.equals("mess") || this.flag.equals("file")  || this.flag.equals("eof"))
         {
-            this.content = s.substring(this.flag.length() + 2, s.length());
+            this.content = s.substring(this.flag.length() + 1, s.length());
             System.out.println("Flag [" + this.flag.length() + "]: <" + this.flag.toUpperCase() + ">");
         }
         
@@ -164,5 +194,35 @@ public class Receive implements Runnable
         
         return this.flag;
     }
-    
+        
+    public String get_date()
+    {
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date date = new Date();
+        System.out.println("Event at: " + dateFormat.format(date)); //06/08/2014 15:59:48
+        return dateFormat.format(date);
+    }
+        
+    private void UpdateHTML(String info)
+    {
+        try
+        {
+            File currentDirectory = new File(new File(".").getAbsolutePath());
+            String p = currentDirectory.getCanonicalPath();
+            File html = new File(p + "/temp/temp" + this.yNickname + ".html");
+            System.out.println("Update File: " + html.getCanonicalPath());
+            RandomAccessFile b = new RandomAccessFile(html, "rw");
+            b.seek(html.length() - 16);
+            String pic = "<img src=\"C:\\Users\\nguye\\Pictures\\11212762_776134922485724_4283480414057853955_n.jpg\" alt=\"avt\" style=\"width:24px;height:24px;\">\n";
+            String s = "\t\t\t<span style=\"color:red;font-weight:bold\">&emsp " + this.fNickname.toUpperCase() + " &emsp[" + this.get_date() + "]</span>: ";
+            s = pic + s;
+            if(info.charAt(0) == '\n')
+                s = s + info.substring(1, info.length());
+            else
+                s = s + info;
+            b.write(("\t<br> \n\t\t\t" + s + "\n\t\t</br>\n\t</body>\n</html>").getBytes());
+            b.close();
+        } catch (IOException ex) {
+        }
+    }
 }

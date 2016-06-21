@@ -25,7 +25,7 @@ public class Send implements Runnable
                         // pubk: public key
                         // eof: het file
                         // send: gui file
-    public String content;  // hello: <ip> <port_send>
+    public String content;  // hello: <nickname> <ip> <port_send>
                             // ack: <ip> <port_send>
                             // mess: <content>
                             // file: <file_name>
@@ -40,41 +40,42 @@ public class Send implements Runnable
     
     public Send(String name)
     {
-        System.out.println("Init Thread Send");
+        System.out.println("\n\t---- Init Thread Send ----\n");
         this.threadName = name;
-        System.out.println("Thread name: " + this.threadName);
+        System.out.println("\tThread name: " + this.threadName);
     }
     
     public Send(String name, String flag)
     {
-        System.out.println("Init Thread Send");
+        System.out.println("\t---- Init Thread Send ----");
         this.threadName = name;
         this.flag = flag;
-        System.out.println("Thread name: " + this.threadName);
+        System.out.println("\tThread name: " + this.threadName);
     }
     
     public void run()
     {
         try {
-            System.out.println("Your IP: " + this.yIP.toString() + "\tYour port: " + this.yPort);
-            System.out.println("Init DatagramSocket");
+            System.out.println("\tYour IP: " + this.yIP.toString() + "\tYour port: " + this.yPort);
+            System.out.println("\tInit DatagramSocket");
             DatagramSocket dsoc = new DatagramSocket(yPort, yIP);
-            System.out.println("Datagram Init Successful");
+            System.out.println("\tDatagram Init Successful");
             
             // hello <ip> <port_send>
             if(flag.equals("hello"))
             {
+                System.out.println("\tPacket HELLO");
                 try 
                 {
-                    this.content = " " + yIP.toString() + " " + yPort;
+                    this.content = " " + this.content + " " + yIP.toString() + " " + yPort;
                     byte[] sendData = (this.flag + this.content).getBytes();
-                    System.out.println("Packet: " + new String(sendData));
-                    System.out.println("Dest IP: " + IpDest.toString() + "\nDest Port: " + PortDes);
+                    System.out.println("\tPacket: " + new String(sendData));
+                    System.out.println("\tDest IP: " + IpDest.toString() + "\n\tDest Port: " + PortDes);
                     DatagramPacket sendPacket = new DatagramPacket(sendData, (this.flag + this.content).length(), IpDest, PortDes);
                     dsoc.send(sendPacket);
-                    System.out.println("Packet sent!");
+                    System.out.println("\tPacket sent!");
                     dsoc.close();
-                    System.out.println("DatagramSocket Closed");
+                    System.out.println("\tDatagramSocket Closed");
                 } catch (IOException ex)
                 {
                     Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
@@ -85,18 +86,18 @@ public class Send implements Runnable
             // ack <ip> <port_send>
             if(flag.equals("ack"))
             {
-                System.out.println("Packet ACK");
+                System.out.println("\tPacket ACK");
                 try 
                 {
                     this.content = " " + yIP.toString() + " " + yPort;
                     byte[] sendData = (this.flag + this.content).getBytes();
-                    System.out.println("Packet: " + new String(sendData));
-                    System.out.println("Dest IP: " + IpDest.toString() + "\nDest Port: " + PortDes);
+                    System.out.println("\tPacket: " + new String(sendData));
+                    System.out.println("\tDest IP: " + IpDest.toString() + "\n\tDest Port: " + PortDes);
                     DatagramPacket sendPacket = new DatagramPacket(sendData, (this.flag + this.content).length(), IpDest, PortDes);
                     dsoc.send(sendPacket);
-                    System.out.println("Packet sent!");
+                    System.out.println("\tPacket sent!");
                     dsoc.close();
-                    System.out.println("DatagramSocket Closed");
+                    System.out.println("\tDatagramSocket Closed");
                 } catch (IOException ex)
                 {
                     Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
@@ -106,24 +107,24 @@ public class Send implements Runnable
             // pubk <pem>
             if(flag.equals("pubk"))
             {
-                System.out.println("Packet PUBK");
+                System.out.println("\tPacket PUBK");
                 
             }
             
             // mess <content>
             if(flag.equals("mess"))
             {
-                System.out.println("Packet MESS");
+                System.out.println("\tPacket MESS");
                 try 
                 {
                     byte[] sendData = (flag + " " + content).getBytes();
-                    System.out.println("Packet: " + new String(sendData));
-                    System.out.println("Dest IP: " + IpDest.toString() + "\nDest Port: " + PortDes);
+                    System.out.println("\tPacket: " + new String(sendData));
+                    System.out.println("\tDest IP: " + IpDest.toString() + "\n\tDest Port: " + PortDes);
                     DatagramPacket sendPacket = new DatagramPacket(sendData, (this.flag + " " + this.content).length(), IpDest, PortDes);
                     dsoc.send(sendPacket);
-                    System.out.println("Packet sent!");
+                    System.out.println("\tPacket sent!");
                     dsoc.close();
-                    System.out.println("DatagramSocket Closed");
+                    System.out.println("\tDatagramSocket Closed");
                 } catch (IOException ex)
                 {
                     Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
@@ -133,17 +134,17 @@ public class Send implements Runnable
             // file <file_name>
             if(flag.equals("file"))
             {
-                System.out.println("Packet FILE");
+                System.out.println("\tPacket FILE");
                 try 
                 {
                     byte[] sendData = (flag + " " + content).getBytes();
-                    System.out.println("Packet: " + new String(sendData));
-                    System.out.println("Dest IP: " + IpDest.toString() + "\nDest Port: " + PortDes);
+                    System.out.println("\tPacket: " + new String(sendData));
+                    System.out.println("\tDest IP: " + IpDest.toString() + "\n\tDest Port: " + PortDes);
                     DatagramPacket sendPacket = new DatagramPacket(sendData, (this.flag + " " + this.content).length(), IpDest, PortDes);
                     dsoc.send(sendPacket);
-                    System.out.println("Packet sent!");
+                    System.out.println("\tPacket sent!");
                     dsoc.close();
-                    System.out.println("DatagramSocket Closed");
+                    System.out.println("\tDatagramSocket Closed");
                 } catch (IOException ex)
                 {
                     Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
@@ -153,17 +154,17 @@ public class Send implements Runnable
             // star: <file_name>
             if(flag.equals("star"))
             {
-                System.out.println("Packet STAR");
+                System.out.println("\tPacket STAR");
                 try 
                 {
                     byte[] sendData = (flag + " " + content).getBytes();
-                    System.out.println("Packet: " + new String(sendData));
-                    System.out.println("Dest IP: " + IpDest.toString() + "\nDest Port: " + PortDes);
+                    System.out.println("\tPacket: " + new String(sendData));
+                    System.out.println("\tDest IP: " + IpDest.toString() + "\n\tDest Port: " + PortDes);
                     DatagramPacket sendPacket = new DatagramPacket(sendData, (flag + " " + content).length(), IpDest, PortDes);
                     dsoc.send(sendPacket);
-                    System.out.println("Packet sent!");
+                    System.out.println("\tPacket sent!");
                     dsoc.close();
-                    System.out.println("DatagramSocket Closed");
+                    System.out.println("\tDatagramSocket Closed");
                     
                     Receive r = new Receive("Receive FILE");
                     r.content = content; // content = file_name
@@ -179,7 +180,7 @@ public class Send implements Runnable
             // send <path_to_file>
             if(flag.equals("send"))
             {
-                System.out.println("Packet SEND");
+                System.out.println("\tPacket SEND");
                 File file = new File(content); // content = file_path
                 byte[] result = new byte[16374];
                 InputStream input = null;
@@ -197,13 +198,13 @@ public class Send implements Runnable
                             totalBytesRead = totalBytesRead + bytesRead;
                             DatagramPacket sendPacket = new DatagramPacket(result, result.length, IpDest, PortDes);
                             dsoc.send(sendPacket);
-                            System.out.println("Send file, part from " + (totalBytesRead - bytesRead) + " to " + totalBytesRead);
+                            System.out.println("\tSend file, part from " + (totalBytesRead - bytesRead) + " to " + totalBytesRead);
                         }
                     }
                     
-                    System.out.println("All file sent!");
+                    System.out.println("\tAll file sent!");
                     dsoc.close();
-                    System.out.println("DatagramSocket Closed");
+                    System.out.println("\tDatagramSocket Closed");
                     
                     input.close();
                     Send s = new Send("send EOF", "oef");
@@ -221,22 +222,23 @@ public class Send implements Runnable
             // eof <file_name>
             if(flag.equals("eof"))
             {
-                System.out.println("Packet EOF");
+                System.out.println("\tPacket EOF");
                 try 
                 {
                     byte[] sendData = (flag + " " + content).getBytes();
-                    System.out.println("Packet: " + new String(sendData));
-                    System.out.println("Dest IP: " + IpDest.toString() + "\nDest Port: " + PortDes);
+                    System.out.println("\tPacket: " + new String(sendData));
+                    System.out.println("\tDest IP: " + IpDest.toString() + "\nDest Port: " + PortDes);
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IpDest, PortDes);
                     dsoc.send(sendPacket);
-                    System.out.println("Packet sent!");
+                    System.out.println("\tPacket sent!");
                     dsoc.close();
-                    System.out.println("DatagramSocket Closed");
+                    System.out.println("\tDatagramSocket Closed");
                 } catch (IOException ex)
                 {
                     Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            System.out.println("\n\t---- End Thread Send ----\n");
             
         } catch (SocketException ex) {
             Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
