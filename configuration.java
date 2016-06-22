@@ -4,6 +4,7 @@ import java.awt.Image;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
 import java.io.*;
 import java.util.*;
 import javax.imageio.ImageIO;
@@ -13,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.KeyPair;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLabel;
@@ -79,6 +81,12 @@ public class configuration extends javax.swing.JFrame {
         lbl_ip.setText("Your friend's IP:");
 
         lbl_port.setText("Your friend's Port:");
+
+        txt_nickname.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txt_nicknameKeyPressed(evt);
+            }
+        });
 
         lbl_hint.setText("You have to enter your friend's IP and Port to begin:");
 
@@ -200,6 +208,7 @@ public class configuration extends javax.swing.JFrame {
         // TODO add your handling code here:
         
         JOptionPane p1 = new JOptionPane();
+        this.txt_nickname.setText(this.txt_nickname.getText().replaceAll(" ", ""));
         //p1.showOptionDialog(null, "Waiting for your friend to respond!!!", "Information", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{}, null);
         boolean flag = false;
         // check that connection was opened? if connection were opened, flag = true, else flag = false
@@ -237,6 +246,26 @@ public class configuration extends javax.swing.JFrame {
         }
         
         init_HTML();
+        
+        // send public key
+        // Create KeyPair
+        KeyPair kp = MyCrypto.createRSAKeyPair();
+        try {
+            File currentDirectory = new File(new File(".").getAbsolutePath());
+            String p = currentDirectory.getCanonicalPath();
+            MyCrypto.exportRSAKeyPair(kp, p + "/keys/RSAkey");
+            
+            // Send key to friend
+            s = new Send("send PUBK", "pubk");
+            s.yIP = this.yIP;
+            s.yPort = this.yPort;
+            s.content = MyCrypto.keyToString(kp.getPublic());
+            s.IpDest = InetAddress.getByName(this.txt_ip.getText());
+            s.PortDes = Integer.parseInt(this.txt_port.getText()) + 1;
+            s.run();
+        } catch (IOException ex) {
+            System.out.println("File not found!");
+        }
         
         this.dispose();
     }//GEN-LAST:event_btn_okActionPerformed
@@ -284,6 +313,13 @@ public class configuration extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_formWindowOpened
+
+    private void txt_nicknameKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_nicknameKeyPressed
+        // TODO add your handling code here:
+        String s = this.txt_nickname.getText();
+        s = s.replaceAll(" ", "");
+        this.txt_nickname.setText(s);
+    }//GEN-LAST:event_txt_nicknameKeyPressed
 
     public static File FileChooser()
     {
