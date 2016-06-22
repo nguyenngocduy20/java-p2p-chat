@@ -7,6 +7,7 @@ package build_in_class;
 import java.util.*;
 import java.io.*;
 import java.net.*;
+import java.security.PublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -108,7 +109,20 @@ public class Send implements Runnable
             if(flag.equals("pubk"))
             {
                 System.out.println("\tPacket PUBK");
-                
+                try 
+                {
+                    byte[] sendData = (flag + " " + content).getBytes();
+                    System.out.println("\tPacket: " + new String(sendData));
+                    System.out.println("\tDest IP: " + IpDest.toString() + "\n\tDest Port: " + PortDes);
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, (this.flag + " " + this.content).length(), IpDest, PortDes);
+                    dsoc.send(sendPacket);
+                    System.out.println("\tPacket sent!");
+                    dsoc.close();
+                    System.out.println("\tDatagramSocket Closed");
+                } catch (IOException ex)
+                {
+                    Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
             
             // mess <content>
@@ -117,6 +131,14 @@ public class Send implements Runnable
                 System.out.println("\tPacket MESS");
                 try 
                 {
+                    // encrypt this.content
+                    
+                    File currentDirectory = new File(new File(".").getAbsolutePath());
+                    String p = currentDirectory.getCanonicalPath();
+                    PublicKey pubk = MyCrypto.importPublicKey(p + "/keys/publicKey");
+                    this.content = MyCrypto.encrypRSAMessage(pubk, this.content);
+                    
+                    // send packet
                     byte[] sendData = (flag + " " + content).getBytes();
                     System.out.println("\tPacket: " + new String(sendData));
                     System.out.println("\tDest IP: " + IpDest.toString() + "\n\tDest Port: " + PortDes);

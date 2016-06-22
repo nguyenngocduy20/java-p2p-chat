@@ -7,6 +7,8 @@ package build_in_class;
 import java.util.*;
 import java.io.*;
 import java.net.*;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeoutException;
@@ -129,11 +131,16 @@ public class Receive implements Runnable
                 if(this.flag.equals("mess"))
                 {
                     parsePacket(packet);
-                    UpdateHTML(this.content);
                     try
                     {
                         File currentDirectory = new File(new File(".").getAbsolutePath());
                         String p = currentDirectory.getCanonicalPath();
+                        
+                        KeyPair kp = MyCrypto.importRSAKeyPair(p + "/keys/RSAkey"); // get KeyPair
+                        
+                        this.content = MyCrypto.decryptRSAMessage(kp.getPrivate(), this.content); //decrypt using private key
+                        
+                        UpdateHTML(this.content);
                         
                         File f = new File(p + "/temp/temp" + this.yNickname + ".html");
                         t.setPage(f.toURI().toURL());
@@ -150,7 +157,13 @@ public class Receive implements Runnable
                 
                 if(this.flag.equals("pubk"))
                 {
-                    // not yet implement
+                    PublicKey pubk = MyCrypto.stringToPubKey(this.content);
+                    try{
+                        File currentDirectory = new File(new File(".").getAbsolutePath());
+                        String p = currentDirectory.getCanonicalPath();
+                        MyCrypto.exportPublicKey(pubk, p + "/keys/publicKey"); // write friend's public key to file
+                    } catch(IOException ex){
+                    }
                 }
                 
                 ds.close();
@@ -180,7 +193,7 @@ public class Receive implements Runnable
             System.out.println("Flag [" + this.flag.length() + "]: <" + this.flag.toUpperCase() + ">");
         }
         
-        if(this.flag.equals("mess") || this.flag.equals("file")  || this.flag.equals("eof"))
+        if(this.flag.equals("mess") || this.flag.equals("file")  || this.flag.equals("eof") || this.flag.equals("pubk"));
         {
             this.content = s.substring(this.flag.length() + 1, s.length());
             System.out.println("Flag [" + this.flag.length() + "]: <" + this.flag.toUpperCase() + ">");
