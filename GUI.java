@@ -233,6 +233,9 @@ public class GUI extends javax.swing.JFrame {
             {
                 p = currentDirectory.getCanonicalPath();
                 File html = new File(p + "/temp/temp" + this.yNickname + ".html");
+                File dummy = new File(p + "/temp/dummy.html");
+                Receive.copyFile(html, dummy);
+                this.txt_chatline.setPage(dummy.toURI().toURL());
                 this.txt_chatline.setPage(html.toURI().toURL());
             } catch (IOException ex) {
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -253,6 +256,10 @@ public class GUI extends javax.swing.JFrame {
             s = this.replaceEmotions(s);
             // send mesage to friend
             Send mess = new Send("Send MESS", "mess");
+            mess.yIP = this.yIP;
+            mess.yPort = this.yPort;
+            mess.IpDest = this.fIP;
+            mess.PortDes = this.fPort + 1;
             if(s.charAt(0) == '\n')
                 mess.content = s.substring(1, s.length());
             else
@@ -267,7 +274,9 @@ public class GUI extends javax.swing.JFrame {
             {
                 p = currentDirectory.getCanonicalPath();
                 File html = new File(p + "/temp/temp" + this.yNickname + ".html");
-                this.txt_chatline.setText("");
+                File dummy = new File(p + "/temp/dummy.html");
+                Receive.copyFile(html, dummy);
+                this.txt_chatline.setPage(dummy.toURI().toURL());
                 this.txt_chatline.setPage(html.toURI().toURL());
             } catch (IOException ex) {
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -377,6 +386,11 @@ public class GUI extends javax.swing.JFrame {
             b.write(s);
             b.close();
             
+            // create dummy
+            temp = new FileWriter(p + "/temp/dummy.html");
+            b = new BufferedWriter(temp);
+            b.write("");
+            b.close();
         } catch (IOException ex)
         {
             Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);

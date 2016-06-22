@@ -369,6 +369,11 @@ public class configuration extends javax.swing.JFrame {
             b.write(s);
             b.close();
             
+            // create dummy
+            temp = new FileWriter(p + "/temp/dummy.html");
+            b = new BufferedWriter(temp);
+            b.write("");
+            b.close();
         } catch (IOException ex)
         {
             Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
