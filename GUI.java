@@ -211,19 +211,21 @@ public class GUI extends javax.swing.JFrame {
         if(evt.getKeyCode() == KeyEvent.VK_ENTER && !txt_send.getText().equals("\n") && !txt_send.getText().equals("") && txt_send.getText() != null)
         {
             set_nickname();
+            String s = this.txt_send.getText();
+            s = s.replaceAll(":\\)", "&#9786;");
             // send message to friend
             Send mess = new Send("Send MESS", "mess");
             mess.yIP = this.yIP;
             mess.yPort = this.yPort;
             mess.IpDest = this.fIP;
             mess.PortDes = this.fPort + 1;
-            if(this.txt_send.getText().charAt(0) == '\n')
-                mess.content = this.txt_send.getText().substring(1, this.txt_send.getText().length());
+            if(s.charAt(0) == '\n')
+                mess.content = s.substring(1, s.length());
             else
-                mess.content = this.txt_send.getText();
+                mess.content = s;
             mess.run();
             
-            UpdateHTML(this.txt_send.getText());
+            UpdateHTML(s);
             
             File currentDirectory = new File(new File(".").getAbsolutePath());
             String p;
@@ -232,7 +234,6 @@ public class GUI extends javax.swing.JFrame {
                 p = currentDirectory.getCanonicalPath();
                 File html = new File(p + "/temp/temp" + this.yNickname + ".html");
                 this.txt_chatline.setPage(html.toURI().toURL());
-                this.txt_chatline.repaint();
             } catch (IOException ex) {
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -247,16 +248,18 @@ public class GUI extends javax.swing.JFrame {
         this.fPort = recv.fPort;
         if(!txt_send.getText().equals("\n") && !txt_send.getText().equals("") && txt_send.getText() != null)
         {
-            set_nickname();            
+            set_nickname();
+            String s = this.txt_send.getText();
+            s = s.replaceAll(":)", "&#9786;");
             // send mesage to friend
             Send mess = new Send("Send MESS", "mess");
-            if(this.txt_send.getText().charAt(0) == '\n')
-                mess.content = this.txt_send.getText().substring(1, this.txt_send.getText().length());
+            if(s.charAt(0) == '\n')
+                mess.content = s.substring(1, s.length());
             else
-                mess.content = this.txt_send.getText();
+                mess.content = s;
             mess.run();
             
-            UpdateHTML(this.txt_send.getText());
+            UpdateHTML(s);
             
             File currentDirectory = new File(new File(".").getAbsolutePath());
             String p;
