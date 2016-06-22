@@ -4,4 +4,3 @@ Chưa update được JEditorPane txt_chatline khi có thay đổi trong file HT
 
 Chưa làm:
   + Gửi nhận file (hình ảnh, file thông thường,...)
-  + Hiển thị Emotion Stiker.
