@@ -143,6 +143,9 @@ public class Receive implements Runnable
                         UpdateHTML(this.content);
                         
                         File f = new File(p + "/temp/temp" + this.yNickname + ".html");
+                        File dummy = new File(p + "/temp/dummy.html");
+                        Receive.copyFile(f, dummy);
+                        t.setPage(dummy.toURI().toURL());
                         t.setPage(f.toURI().toURL());
                     } catch(IOException ex)
                     {
@@ -237,5 +240,27 @@ public class Receive implements Runnable
             b.close();
         } catch (IOException ex) {
         }
+    }
+    
+    public static void copyFile(File source, File dest) throws FileNotFoundException, IOException
+    {
+            InputStream is = null;
+            OutputStream os = null;
+            try
+            {
+                is = new FileInputStream(source);
+                os = new FileOutputStream(dest);
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = is.read(buffer)) > 0)
+                {
+                    os.write(buffer, 0, length);
+                }
+            }
+            finally
+            {
+                is.close();
+                os.close();
+            }
     }
 }
