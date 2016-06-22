@@ -212,7 +212,7 @@ public class GUI extends javax.swing.JFrame {
         {
             set_nickname();
             String s = this.txt_send.getText();
-            s = s.replaceAll(":\\)", "&#9786;");
+            s = this.replaceEmotions(s);
             // send message to friend
             Send mess = new Send("Send MESS", "mess");
             mess.yIP = this.yIP;
@@ -250,7 +250,7 @@ public class GUI extends javax.swing.JFrame {
         {
             set_nickname();
             String s = this.txt_send.getText();
-            s = s.replaceAll(":)", "&#9786;");
+            s = this.replaceEmotions(s);
             // send mesage to friend
             Send mess = new Send("Send MESS", "mess");
             if(s.charAt(0) == '\n')
@@ -267,6 +267,7 @@ public class GUI extends javax.swing.JFrame {
             {
                 p = currentDirectory.getCanonicalPath();
                 File html = new File(p + "/temp/temp" + this.yNickname + ".html");
+                this.txt_chatline.setText("");
                 this.txt_chatline.setPage(html.toURI().toURL());
             } catch (IOException ex) {
                 Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
@@ -382,6 +383,15 @@ public class GUI extends javax.swing.JFrame {
         }
     }
         
+    private String replaceEmotions(String s)
+    {
+        String result = s.replaceAll(":\\)", "&#9786;");
+        result = result.replaceAll(":\\(", "&#9785;");
+        result = result.replaceAll(":D", "&#128515;");
+        result = result.replaceAll("><", "&#128518;");
+                
+        return result;
+    }
     /**
      * @param args the command line arguments
      */
