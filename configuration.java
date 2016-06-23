@@ -267,6 +267,25 @@ public class configuration extends javax.swing.JFrame {
             System.out.println("File not found!");
         }
         
+        // send avatar
+        try {
+            File img = configuration.FileChooser();
+            if(img != null)
+            {
+                s = new Send("send FILE", "file");
+                s.yIP = this.yIP;
+                s.yPort = this.yPort;
+                s.IpDest = InetAddress.getByName(this.txt_ip.getText());
+                s.PortDes = Integer.parseInt(this.txt_port.getText()) + 1;
+                s.content = "avt_" + this.yNickname + img.getCanonicalPath().substring(img.getCanonicalPath().lastIndexOf("."), img.getCanonicalPath().length());
+                avt = img;
+                recv.filePath = img.getCanonicalPath();
+                s.run();
+            }
+        } catch(IOException ix) {
+            
+        }
+        
         this.dispose();
     }//GEN-LAST:event_btn_okActionPerformed
 
