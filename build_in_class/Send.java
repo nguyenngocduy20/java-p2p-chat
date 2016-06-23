@@ -188,11 +188,12 @@ public class Send implements Runnable
                     dsoc.close();
                     System.out.println("\tDatagramSocket Closed");
                     
+                    /*
                     Receive r = new Receive("Receive FILE");
                     r.content = content; // content = file_name
                     r.flag = "";
                     r.run();
-                    
+                    */
                 } catch (IOException ex)
                 {
                     Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
@@ -204,8 +205,9 @@ public class Send implements Runnable
             {
                 System.out.println("\tPacket SEND");
                 File file = new File(content); // content = file_path
-                byte[] result = new byte[16374];
+                byte[] result = new byte[16384];
                 InputStream input = null;
+                System.out.println("\tSend file: " + this.content);
                 
                 try 
                 {
@@ -214,7 +216,7 @@ public class Send implements Runnable
                     long file_length = file.length();
                     while (totalBytesRead < file_length)
                     {
-                        int bytesRead = input.read(result, (int) totalBytesRead, 16384);
+                        int bytesRead = input.read(result, 0, 16384);
                         if(bytesRead > 0)
                         {
                             totalBytesRead = totalBytesRead + bytesRead;
@@ -230,7 +232,11 @@ public class Send implements Runnable
                     
                     input.close();
                     Send s = new Send("send EOF", "oef");
-                    s.content = content.substring(content.lastIndexOf('\\'), content.length());
+                    s.yIP = this.yIP;
+                    s.yPort = this.yPort;
+                    s.IpDest = this.IpDest;
+                    s.PortDes = this.PortDes;
+                    s.content = content.substring(content.lastIndexOf('/'), content.length());
                     s.run();
                 } catch (FileNotFoundException ex)
                 {

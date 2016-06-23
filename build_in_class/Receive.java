@@ -36,6 +36,7 @@ public class Receive implements Runnable
     public DatagramPacket packet;
     public boolean acked;
     public boolean isRunnable = true;
+    public String filePath;
     public JEditorPane t;
     public StringBuilder doc;
     
@@ -94,40 +95,7 @@ public class Receive implements Runnable
                 {
                     acked = true;
                 }
-                
-                if(this.flag.equals("star"))
-                {
-                    Send s = new Send("send SEND", "send");
-                    s.IpDest = packet.getAddress();
-                    s.PortDes = packet.getPort() + 1;
-                    s.content = this.content; // path to file
-                    s.run();
-                }
-                
-                if(this.flag.equals(""))
-                {
-                    ds.receive(packet);
-                    File currentDirectory = new File(new File(".").getAbsolutePath());
-                    String p = currentDirectory.getCanonicalPath();
-                    p = p + "\\ReceivedFiles";
-                    File f = new File(p);
-                    if(!f.exists())
-                        f.mkdir();
-                    File file = new File(p + this.content);
-                    OutputStream output = null;
-                    long totalBytesRecv = 0;
-                    output = new BufferedOutputStream(new FileOutputStream(file));
-                    
-                    while(!parsePacket(packet).equals("eof"))
-                    {
-                        output.write(packet.getData());
-                        totalBytesRecv = totalBytesRecv + packet.getLength();
-                        ds.receive(packet);
-                    }
-                    
-                    System.out.println("Received file " + this.content + "(" + totalBytesRecv + ")");
-                }
-                
+                                
                 if(this.flag.equals("mess"))
                 {
                     parsePacket(packet);
@@ -156,7 +124,89 @@ public class Receive implements Runnable
                 if(this.flag.equals("file"))
                 {
                     parsePacket(packet);
+                    // this.content = file_name
+                    if(this.content.startsWith("avt_"))
+                    {
+                        Send s = new Send("send STAR", "star");
+                        s.yIP = this.yIP;
+                        s.yPort = this.yPort - 1;
+                        s.IpDest = packet.getAddress();
+                        s.PortDes = packet.getPort() + 1;
+                        s.content = this.content;
+                        s.run();
+                        this.filePath = "/temp/" + this.content;
+                    }
+                    else
+                        this.filePath = "/ReceivedFiles/" + this.content;
+                    
+                    // receive file
+                    File currentDirectory = new File(new File(".").getAbsolutePath());
+                    String p = currentDirectory.getCanonicalPath();
+                    //p = p + "/ReceivedFiles";
+                    File f = new File(p + "/ReceivedFiles");
+                    if(!f.exists())
+                        f.mkdir();
+                    File file = new File(p + this.filePath);
+                    System.out.println("Receiving file: " + this.filePath);
+                    OutputStream output = null;
+                    long totalBytesRecv = 0;
+                    output = new BufferedOutputStream(new FileOutputStream(file));
+                    
+                    ds.receive(packet);
+                    while(!parsePacket(packet).equals("eof"))
+                    {
+                        output.write(packet.getData(), 0, packet.getLength());
+                        System.out.print("Received file, part from " + totalBytesRecv);
+                        totalBytesRecv = totalBytesRecv + packet.getLength();
+                        System.out.println(" to " + totalBytesRecv);
+                        ds.receive(packet);
+                    }
+                    
+                    output.close();
+                    System.out.println("Received file " + this.content + "(" + totalBytesRecv + ")");
                 }
+                
+                
+                if(this.flag.equals("star"))
+                {
+                    Send s = new Send("send SEND", "send");
+                    s.yIP = this.yIP;
+                    s.yPort = this.yPort - 1;
+                    s.IpDest = packet.getAddress();
+                    s.PortDes = packet.getPort() + 1;
+                    s.content = this.filePath; // path to file
+                    s.run();
+                }
+                
+                /*
+                if(this.flag.equals(""))
+                {
+                    ds.receive(packet);
+                    File currentDirectory = new File(new File(".").getAbsolutePath());
+                    String p = currentDirectory.getCanonicalPath();
+                    p = p + "/ReceivedFiles";
+                    File f = new File(p);
+                    if(!f.exists())
+                        f.mkdir();
+                    File file = new File(p + this.filePath);
+                    System.out.println("Receiving file: " + this.filePath);
+                    OutputStream output = null;
+                    long totalBytesRecv = 0;
+                    output = new BufferedOutputStream(new FileOutputStream(file));
+                    
+                    while(!parsePacket(packet).equals("eof"))
+                    {
+                        output.write(packet.getData());
+                        System.out.print("Received file, part from " + totalBytesRecv);
+                        totalBytesRecv = totalBytesRecv + packet.getLength();
+                        System.out.print(" to " + totalBytesRecv);
+                        ds.receive(packet);
+                    }
+                    
+                    output.close();
+                    System.out.println("Received file " + this.content + "(" + totalBytesRecv + ")");
+                }
+                */
                 
                 if(this.flag.equals("pubk"))
                 {
@@ -185,6 +235,12 @@ public class Receive implements Runnable
     
     public String parsePacket(DatagramPacket packet)
     {
+        if(packet.getLength() == 16384)
+        {
+            this.flag = "";
+            return this.flag;
+        }
+        
         String s = new String(packet.getData()).substring(0, packet.getLength());
         this.flag = s.substring(0, s.indexOf(" "));
         if(this.flag.equals("hello") || this.flag.equals("ack"))
