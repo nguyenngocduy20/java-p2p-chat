@@ -77,6 +77,7 @@ public class Receive implements Runnable
                 this.sPort = this.fPort = packet.getPort();
                 System.out.println("\n===\nReceived packet from " + sIP + "\tPort: " + sPort);
                 System.out.println("Content [" + packet.getLength() + "]: " + new String(packet.getData()).substring(0, packet.getLength()));
+                System.out.println("Packet Length: " + packet.getLength());
                 parsePacket(packet);
                 
                 System.out.println("\n--- Action for this type of packet ---\n");
@@ -135,35 +136,36 @@ public class Receive implements Runnable
                         s.content = this.content;
                         s.run();
                         this.filePath = "/temp/" + this.content;
+                        
+                        // receive file
+                        File currentDirectory = new File(new File(".").getAbsolutePath());
+                        String p = currentDirectory.getCanonicalPath();
+                        //p = p + "/ReceivedFiles";
+                        File f = new File(p + "/ReceivedFiles");
+                        if(!f.exists())
+                            f.mkdir();
+                        File file = new File(p + this.filePath);
+                        System.out.println("Receiving file: " + this.filePath);
+                        OutputStream output = null;
+                        long totalBytesRecv = 0;
+                        output = new BufferedOutputStream(new FileOutputStream(file));
+
+                        ds.receive(packet);
+                        while(!parsePacket(packet).equals("eof"))
+                        {
+                            output.write(packet.getData(), 0, packet.getLength());
+                            System.out.print("Received file, part from " + totalBytesRecv);
+                            totalBytesRecv = totalBytesRecv + packet.getLength();
+                            System.out.println(" to " + totalBytesRecv);
+                            ds.receive(packet);
+                        }
+
+                        output.close();
+                        System.out.println("Received file " + this.content + "(" + totalBytesRecv + ")");
                     }
                     else
                         this.filePath = "/ReceivedFiles/" + this.content;
                     
-                    // receive file
-                    File currentDirectory = new File(new File(".").getAbsolutePath());
-                    String p = currentDirectory.getCanonicalPath();
-                    //p = p + "/ReceivedFiles";
-                    File f = new File(p + "/ReceivedFiles");
-                    if(!f.exists())
-                        f.mkdir();
-                    File file = new File(p + this.filePath);
-                    System.out.println("Receiving file: " + this.filePath);
-                    OutputStream output = null;
-                    long totalBytesRecv = 0;
-                    output = new BufferedOutputStream(new FileOutputStream(file));
-                    
-                    ds.receive(packet);
-                    while(!parsePacket(packet).equals("eof"))
-                    {
-                        output.write(packet.getData(), 0, packet.getLength());
-                        System.out.print("Received file, part from " + totalBytesRecv);
-                        totalBytesRecv = totalBytesRecv + packet.getLength();
-                        System.out.println(" to " + totalBytesRecv);
-                        ds.receive(packet);
-                    }
-                    
-                    output.close();
-                    System.out.println("Received file " + this.content + "(" + totalBytesRecv + ")");
                 }
                 
                 
@@ -238,10 +240,11 @@ public class Receive implements Runnable
         if(packet.getLength() == 16384)
         {
             this.flag = "";
+            System.out.println("Flag [" + this.flag.length() + "]: <" + this.flag.toUpperCase() + ">");
             return this.flag;
         }
-        
         String s = new String(packet.getData()).substring(0, packet.getLength());
+        
         this.flag = s.substring(0, s.indexOf(" "));
         if(this.flag.equals("hello") || this.flag.equals("ack"))
         {
