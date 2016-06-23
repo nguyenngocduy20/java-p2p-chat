@@ -269,21 +269,22 @@ public class configuration extends javax.swing.JFrame {
         
         // send avatar
         try {
-            File img = configuration.FileChooser();
-            if(img != null)
+            if(avt != null)
             {
+                Thread.sleep(100);
                 s = new Send("send FILE", "file");
                 s.yIP = this.yIP;
                 s.yPort = this.yPort;
                 s.IpDest = InetAddress.getByName(this.txt_ip.getText());
                 s.PortDes = Integer.parseInt(this.txt_port.getText()) + 1;
-                s.content = "avt_" + this.yNickname + img.getCanonicalPath().substring(img.getCanonicalPath().lastIndexOf("."), img.getCanonicalPath().length());
-                avt = img;
-                recv.filePath = img.getCanonicalPath();
+                s.content = "avt_" + this.yNickname + avt.getCanonicalPath().substring(avt.getCanonicalPath().lastIndexOf("."), avt.getCanonicalPath().length());
+                recv.filePath = avt.getCanonicalPath();
                 s.run();
             }
         } catch(IOException ix) {
             
+        } catch (InterruptedException ex) {
+            Logger.getLogger(configuration.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         this.dispose();
